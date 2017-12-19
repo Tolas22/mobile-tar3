@@ -82,33 +82,97 @@
         //-----------------------------------------------------------
         // this is called on the pageshow event of the map-page page
         //-----------------------------------------------------------
-        $(document).on('pageshow', '#map-page', function (e, data) {
-            image = "images/man_small.png";
-            timer = 300;
-            timeInterval = 5000; // [in miliseconds]between the calls to the new position calculations            //minDistance = 5; 
-            sTimeInterval = 1000
-            minDistance = 10; // distance from the treasure in which it is found
-            function callChallenge() {
-                cTimer = Math.floor(Math.random() * 60);
-                getMyPosition();
-                getChallenge(request, successCB, errorCB)
+        //$(document).on('pageshow', '#map-page', function (e, data) {
+        //    image = "images/man_small.png";
+        //    timer = 300;
+        //    timeInterval = 5000; // [in miliseconds]between the calls to the new position calculations            //minDistance = 5; 
+        //    sTimeInterval = 1000
+        //    minDistance = 10; // distance from the treasure in which it is found
+        //    function callChallenge() {
+        //        cTimer = Math.floor(Math.random() * 60);
+        //        getMyPosition();
+        //        getChallenge(request, successCB, errorCB)
 
-                // get the coordinates
-                var lat = request1.lat
-                var lng = request1.lng
-                clickLatlng = new google.maps.LatLng(lat, lng);
+        //        // get the coordinates
+        //        var lat = request1.lat
+        //        var lng = request1.lng
+        //        clickLatlng = new google.maps.LatLng(lat, lng);
 
-                var request = { //the coords needs to be your current location
-                    lat: lat,
-                    lng: lng,
-                    groupName: document.getElementById("groupNameTB").value
+        //        var request = { //the coords needs to be your current location
+        //            lat: lat,
+        //            lng: lng,
+        //            groupName: document.getElementById("groupNameTB").value
+        //        }
+        //        getChallenge(request, getChallenge_success, getChallenge_failure);
+        
+
+            $(document).on('pageshow', '#map-page', function (e, data) {
+                infowindow = null;
+                co = null;
+                image = "images/man_small.png";
+                timer = 300;
+                timeInterval = 5000; // in miliseconds
+                sTimeInterval = 1000;
+                minDistance = 5; // distance from the treasure in which it is found
+                navFlag = "on";
+                
+               var   mapOptions = { // set the map options
+                    zoom: 18,
+                    center: getMyPosition()
+               };
+           
+            mapObj = document.getElementById('map-canvas'); // get the map-canvas div
+            map = new google.maps.Map(mapObj, mapOptions); // create the map object               
+          
+            if (navFlag == "on") {
+
+                    (function loop() {
+                        rand = Math.round(Math.random() * (10000 - 60)) + 60;
+                        setTimeout(function () {
+                            doSomething();
+                            loop();
+                        }, rand);
+                    });
+
                 }
-                getChallenge(request, getChallenge_success, getChallenge_failure);
+                else {
+                    changePage("startDialog"); // handle the case that we got here via back
+                }
 
 
+              
+            });
+           
+                //////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////אולי קל יותר לראות שמקליקים
+        //    google.maps.event.addListener(map, 'click', function (event) {
+        //        getMyPosition();
+        //        //myPos.lat = getMyPosition().latitude;
+        //        //myPos.long = getMyPosition().Longtitude;
+        //        var request = { //the coords needs to be your current location
+        //            lat: co.latitude,
+        //            lng: co.longitude,
+        //            groupName: document.getElementById("groupNameTB").value
+        //        }
 
+        //        getChallenge(request, getChallenge_success, getChallenge_failure);
+        //});
 
-                google.maps.event.addDomListener(window, 'load', initialize);
+                function doSomething() {
+
+                    getMyPosition();
+                    
+                    var request = { //the coords needs to be your current location
+                        center: getMyPosition(),
+                        //lat: co.latitude,
+                        //lng: co.longitude,
+                        groupName: document.getElementById("groupNameTB").value
+                    }
+
+                    getChallenge(request, getChallenge_success, getChallenge_failure);
+
+                }
+            
 
                 function getChallenge_success(result) {
                     if (infowindow) {
@@ -133,152 +197,112 @@
                         content: contentString
                     });
                     infowindow.open(map, chal_marker);
+
                 }
 
                 function getChallenge_failure(e) {
                     alert("failed in get challenge :( " + e.responseText);
                 }
                 
-                ch = setInterval("startChallenge()", sTimeInterval)
-            }
+                //    ch = setInterval("startChallenge()", sTimeInterval)
+                //}
 
-            var mapOptions = { // set the map options
-                zoom: 17
-            }
-            mapObj = document.getElementById('map-canvas'); // get the map-canvas div
-            map = new google.maps.Map(mapObj, mapOptions); // create the map object
+     
 
-            if (navFlag == "on") {
-                getMyPosition(); // activate it for the first time
-                h = setInterval("getMyPosition()", timeInterval); // run the getPosition every timeInterval 
-                
-            }
-            else {
-                changePage("startDialog"); // handle the case that we got here via back
-            }
-        });
-
-        //-----------------------------------------------------------------------
-        // get the user's position
-        //-----------------------------------------------------------------------
+                //-----------------------------------------------------------------------
+                // get the user's position
+                //-----------------------------------------------------------------------
       
-        function getMyPosition() {
+                function getMyPosition() {
 
-            var options = {
-                enableHighAccuracy: true,
-                timeout: timeInterval,
-                maximumAge: 1000
-            };
-            navigator.geolocation.getCurrentPosition(getCurrentPosition_Success,
-                                                     getCurrentPosition_Failure,
-                                                     options);
-            document.getElementById("timer").innerHTML = timer + "s";
-            timer -= timeInterval / 1000; // increment the timer
-            if (timer <= 0) {
-                clearInterval(h);
-                clearInterval(ch);
-                navFlag = "off";
-                changePage("startDialog");
-            }
-        }
+                    var options = {
+                        enableHighAccuracy: true,
+                        timeout: timeInterval,
+                        maximumAge: 1000
+                    };
+                    navigator.geolocation.getCurrentPosition(getCurrentPosition_Success,
+                                                             getCurrentPosition_Failure,
+                                                             options);
 
-        //------------------------------------------------------------
-        // Callback function in case of success in getCurrentPosition
-        //------------------------------------------------------------
-        function getCurrentPosition_Success(position) {
-            if (navFlag == "off") return;
-            co = position.coords; // set a short variable for conviniece
-            var pos = new google.maps.LatLng(co.latitude, co.longitude);
-            $('#gpsIcon').attr('src', 'images/gps.png'); // show the gps working icon
-            var marker1 = new google.maps.Marker({ // set a marker on the map
-                position: pos,
-                map: map,
-                title: 'You Are Here',
-                icon: image
-            });
-            map.setCenter(pos); // center the map around the position of the user
+                    document.getElementById("timer").innerHTML = timer + "s";
 
-             request1 = {
-                lat: co.latitude,
-                lng: co.longitude,
-                groupName: groupName
-            };
-            // Ajax function : calculate the distance of the user's from the target
-            // pass the callback functions as parameters to the ajax
-            //getDistance(request, getDistance_Success, getDistance_Failure);
+                    timer -= timeInterval / 1000; // increment the timer
+                    if (timer <= 0) {
+                        clearInterval(h);
+                        clearInterval(ch);
+                        navFlag = "off";
+                        changePage("startDialog");
+                    }
+                    
+                }
+
+                //------------------------------------------------------------
+                // Callback function in case of success in getCurrentPosition
+                //------------------------------------------------------------
+                function getCurrentPosition_Success(position) {
+                    if (navFlag == "off") return;
+                    co = position.coords; // set a short variable for conviniece
+                    var pos = new google.maps.LatLng(co.latitude, co.longitude);
+                    $('#gpsIcon').attr('src', 'images/gps.png'); // show the gps working icon
+                    var marker1 = new google.maps.Marker({ // set a marker on the map
+                        position: pos,
+                        map: map,
+                        title: 'You Are Here',
+                        icon: image
+                    });
+                    map.setCenter(pos); // center the map around the position of the user
+
+                    request1 = {
+                        lat: co.latitude,
+                        lng: co.longitude,
+                        groupName: groupName
+                    };
+                    
+                  
+                    // Ajax function : calculate the distance of the user's from the target
+                    // pass the callback functions as parameters to the ajax
+                    //  getChallenge(request, getChallenge_success, getChallenge_failure);
             
-        }
+                }
 
-        //------------------------------------------------------------
-        // Callback function in case of failure in getCurrentPosition
-        //------------------------------------------------------------
-        function getCurrentPosition_Failure() {
-            $('#gpsIcon').attr('src', 'images/no-gps.png');
-        }
+                //------------------------------------------------------------
+                // Callback function in case of failure in getCurrentPosition
+                //------------------------------------------------------------
+                function getCurrentPosition_Failure() {
+                    $('#gpsIcon').attr('src', 'images/no-gps.png');
+                }
 
-        //------------------------------------------------------------
-        // Callback function in case of success in getDistance
-        //------------------------------------------------------------
-        function getDistance_Success(data) // Variable data contains the data we get from serverside
-        {
-            var distance = $.parseJSON(data.d) * 1000; //X 1000 is because the value received is in KM
-            distance = Math.floor(distance);           // round the distance
-            // display it to the user
-           
 
-            if (reachedTarget(distance)) {// check if target is reached
-                clearInterval(h);
-                changePage("riddle");
-                navFlag = "off";
-            }
-        }
-        //------------------------------------------------------------
-        // Starting a new challenge
-        //------------------------------------------------------------
-        function startChallenge() {
+                //------------------------------------------------------------
+                // Starting a new challenge
+                //------------------------------------------------------------
+                function startChallenge() {
             
-            document.getElementById("cTimer").innerHTML = cTimer + "s";
-            cTimer--;
-            if (cTimer <= 0) {
-                clearInterval(ch);
+                    document.getElementById("cTimer").innerHTML = cTimer + "s";
+                    cTimer--;
+                    if (cTimer <= 0) {
+                        clearInterval(ch);
                 
-                callChallenge();
-            }
+                        callChallenge();
+                    }
 
-        }
+                }
 
-        //------------------------------------------------------------
-        // Callback function in case of success in getDistance
-        //------------------------------------------------------------
-        function getDistance_Failure(e) {
-            //alert("failed in getDistance :( " + e.responseText);
-            alert("failed in getDistance :( " + e.error);
-        } 
-
-        //------------------------------------------------------------
-        // Check if we reached the destination
-        //------------------------------------------------------------
-        function reachedTarget(distance) {
-            if (distance < minDistance) return true;
-            else return false;
-        }
-
-        //--------------------------------------------------------------
-        // Change to another page
-        //--------------------------------------------------------------
-        function changePage(pName) {
-            $.mobile.changePage($("#" + pName + ""), {
-                allowSamePageTransition: true,
-                transition: 'flip',
-                changeHash: true,
-                reverse: true,
-                showLoadMsg: true,
-                reloadPage: true,
-            });
-        }
-  
-            
-
+       
+                //--------------------------------------------------------------
+                // Change to another page
+                //--------------------------------------------------------------
+                function changePage(pName) {
+                    $.mobile.changePage($("#" + pName + ""), {
+                        allowSamePageTransition: true,
+                        transition: 'flip',
+                        changeHash: true,
+                        reverse: true,
+                        showLoadMsg: true,
+                        reloadPage: true,
+                    });
+                }
+               
     </script>
 
 
@@ -299,8 +323,9 @@
                 <input type="text" id="groupNameTB" placeholder="Enter your group name here"/>
             <a href="#map-page" data-role="button" id="startBTN">
                 <h2>Press To Start</h2>
-                <img src="images/t-hunt.png" style="width:100%" />
+                <img  src="images/foundtre.jpg" style="width:100%" />
             </a>
+            
         </div>
 
     </div>
